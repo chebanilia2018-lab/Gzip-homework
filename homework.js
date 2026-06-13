@@ -1,8 +1,10 @@
+console.log('#58. JavaScript homework example file');
+
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
 import { createGzip, createGunzip } from 'zlib';
-import { pipeline } from 'stream/promises';
+
 
 async function makeFreeName(fileName) {
   let currentName = fileName;
@@ -12,11 +14,11 @@ async function makeFreeName(fileName) {
     try {
       await fsPromises.access(currentName);
 
-      const parsedFile = path.parse(fileName);
+      const parsed = path.parse(fileName);
 
       currentName = path.join(
-        parsedFile.dir,
-        `${parsedFile.name}_${index}${parsedFile.ext}`
+        parsed.dir,
+        `${parsed.name}_${index}${parsed.ext}`
       );
 
       index++;
@@ -26,40 +28,54 @@ async function makeFreeName(fileName) {
   }
 }
 
+
 async function compressFile(filePath) {
   try {
     await fsPromises.access(filePath);
 
-    const archivePath = await makeFreeName(`${filePath}.gz`);
+    const outFile = await makeFreeName(filePath + '.gz');
 
-    await pipeline(
-      fs.createReadStream(filePath),
-      createGzip(),
-      fs.createWriteStream(archivePath)
-    );
+    const input = fs.createReadStream(filePath);
+    const output = fs.createWriteStream(outFile);
+    const gzip = createGzip();
 
-    return archivePath;
+    input.pipe(gzip).pipe(output);
+
+   
+    output.on('finish', () => {
+      console.log('File compressed:', outFile);
+    });
+
+    return outFile;
+
   } catch (error) {
-    throw new Error(`Cannot compress file: ${error.message}`);
+    throw new Error('Cannot compress file: ' + error.message);
   }
 }
+
 
 async function decompressFile(compressedFilePath, destinationFilePath) {
   try {
     await fsPromises.access(compressedFilePath);
 
-    const resultPath = await makeFreeName(destinationFilePath);
+    const outFile = await makeFreeName(destinationFilePath);
 
-    await pipeline(
-      fs.createReadStream(compressedFilePath),
-      createGunzip(),
-      fs.createWriteStream(resultPath)
-    );
+    const input = fs.createReadStream(compressedFilePath);
+    const output = fs.createWriteStream(outFile);
+    const gunzip = createGunzip();
 
-    return resultPath;
+    input.pipe(gunzip).pipe(output);
+
+    output.on('finish', () => {
+      console.log('File decompressed:', outFile);
+    });
+
+    return outFile;
+
   } catch (error) {
-    throw new Error(`Cannot decompress file: ${error.message}`);
+    throw new Error('Cannot decompress file: ' + error.message);
   }
 }
+
 
 export { compressFile, decompressFile };
