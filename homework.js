@@ -5,7 +5,6 @@ import { promises as fsPromises } from 'fs';
 import path from 'path';
 import { createGzip, createGunzip } from 'zlib';
 
-
 async function makeFreeName(fileName) {
   let currentName = fileName;
   let index = 1;
@@ -28,7 +27,6 @@ async function makeFreeName(fileName) {
   }
 }
 
-
 async function compressFile(filePath) {
   try {
     await fsPromises.access(filePath);
@@ -41,18 +39,12 @@ async function compressFile(filePath) {
 
     input.pipe(gzip).pipe(output);
 
-   
-    output.on('finish', () => {
-      console.log('File compressed:', outFile);
-    });
-
     return outFile;
 
   } catch (error) {
     throw new Error('Cannot compress file: ' + error.message);
   }
 }
-
 
 async function decompressFile(compressedFilePath, destinationFilePath) {
   try {
@@ -66,16 +58,11 @@ async function decompressFile(compressedFilePath, destinationFilePath) {
 
     input.pipe(gunzip).pipe(output);
 
-    output.on('finish', () => {
-      console.log('File decompressed:', outFile);
-    });
-
     return outFile;
 
   } catch (error) {
     throw new Error('Cannot decompress file: ' + error.message);
   }
 }
-
 
 export { compressFile, decompressFile };
